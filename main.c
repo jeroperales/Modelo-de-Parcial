@@ -27,31 +27,90 @@ nodoConsola* inicLista();
 nodoConsola* cargarNodo(stConsola consola);
 stConsola cargaConsola();
 void mostrarNODO (nodoConsola* nodo);
-void ordenaListaStock(nodoConsola* lista, nodoConsola* nuevoNodo);
+void mostrarLista(nodoConsola* lista);
+nodoConsola* ordenaListaStock(nodoConsola* lista, nodoConsola* nuevoNodo);
+nodoConsola* agregarPrincipio(nodoConsola* lista, nodoConsola* nuevoNodo);
+void muestraPrecio(float precioBuscar, nodoConsola* lista);
+int confirmaStock(nodoConsola* lista, char marca[], char modelo[], int stock);
 
 //MAIN
 int main()
 {
+    int stock;
+    int flag;
+    int intopc;
+    float precioBuscar;
+    char marca[20];
+    char modelo[20];
+    char opc = 's';
     stConsola consola;
     nodoConsola* nodo;
     nodoConsola* lista;
-
-
-    consola=cargaConsola();
-
-    //PUNTO 1
-
-    nodo=cargarNodo(consola);
-
-
     lista = inicLista();
 
+    //MENU
+
+    printf("================MENU================\n");
+    printf(" 1- Cargar lista de forma ordenada \n");
+    printf(" 2- Buscar y ordenar por PRECIO una lista dada (RECURSIVO)\n");
+    printf(" 3- Confirmar cantidad de stock\n");
+    printf("====================================");
+    fflush(stdin);
+    printf("\nIngrese una opcion: \n");
+    scanf("%i", &intopc);
 
 
+    switch(intopc)
+    {
+    case 1:
+        //PUNTO 1 y 2
+        while (opc == 's')
+        {
+            consola=cargaConsola();
+            nodo=cargarNodo(consola);
+            lista = ordenaListaStock(lista, nodo);
 
+            printf("\nSI DESEA INGRESAR OTRA CONSOLA, INGRESE s\n");
+            fflush(stdin);
+            scanf("%c", &opc);
+        }
+        printf("LISTA ORDENADA POR STOCK: \n");
+        mostrarLista(lista);
+        break;
 
+    case 2:
+        printf("\nPRECIO A BUSCAR: ");
+        fflush(stdin);
+        scanf("%f", &precioBuscar);
+        muestraPrecio(precioBuscar, lista);
+        break;
 
-    return 0;
+    case 3:
+        printf("\n QUE MARCA ESTAS BUSCANDO?\n");
+        fflush(stdin);
+        gets(marca);
+        printf("\n QUE MODELO ESTAS BUSCANDO?\n");
+        fflush(stdin);
+        gets(modelo);
+        printf("\n CANTIDAD DE STOCK A BUSCAR?\n");
+        fflush(stdin);
+        scanf("%i", &stock);
+
+        flag = confirmaStock(lista, marca, modelo, stock);
+
+        if (flag == 1)
+        {
+            printf("TIENE SUFICIENTE STOCK \n");
+        }
+        else
+        {
+
+            printf("NO TENES SUFICIENTE STOCK\n");
+        }
+        break;
+
+        return 0;
+    }
 }
 
 nodoConsola* inicLista()
@@ -114,41 +173,108 @@ void mostrarLista(nodoConsola* lista)
 }
 
 
-void ordenaListaStock(nodoConsola* lista, nodoConsola* nuevoNodo)
+
+nodoConsola* ordenaListaStock(nodoConsola* lista, nodoConsola* nuevoNodo)
 {
-
-    nodoConsola* aux=lista;
-    nodoConsola* seg = lista->siguiente;
-    int flag=0;
+    nodoConsola* aux;
+    nodoConsola* aux2;
 
 
-    if (lista!= NULL)
+    if(lista != NULL)
     {
-        while(aux->siguiente !=NULL && flag == 0)
+        if(nuevoNodo->dato.stock < lista->dato.stock )
         {
-            if (nuevoNodo->dato.stock < aux->dato.stock)
-            {
+            lista = agregarPrincipio(lista, nuevoNodo);
+        }
+        else
+        {
+            aux = lista;
+            aux2 = lista->siguiente;
 
-                nuevoNodo->siguiente = aux;
-                lista = nuevoNodo;
-                flag = 1;
-
-            }
-            else
+            while((aux2 != NULL)&&(nuevoNodo->dato.stock > aux2->dato.stock))
             {
-                aux = aux->siguiente;
+                aux = aux2;
+                aux2 = aux2->siguiente;
             }
+
+            nuevoNodo->siguiente = aux2;
+            aux->siguiente = nuevoNodo;
         }
     }
-    else{
+    else
+    {
         lista = nuevoNodo;
     }
 
-    if (flag == 0)
-    {
-        aux->siguiente = nuevoNodo;
-    }
+    return lista;
+}
 
+nodoConsola* agregarPrincipio(nodoConsola* lista, nodoConsola* nuevoNodo)
+{
+    if (lista!=NULL)
+    {
+        nuevoNodo->siguiente = lista;
+        lista = nuevoNodo;
+    }
+    else
+    {
+        lista = nuevoNodo;
+    }
+    return lista;
+}
+
+void muestraPrecio(float precioBuscar, nodoConsola* lista)
+{
+    nodoConsola* aux = lista;
+
+    if (lista)
+    {
+        if(lista->dato.precioEnMiles == precioBuscar)
+        {
+            mostrarNODO(lista);
+        }
+        muestraPrecio(precioBuscar, aux->siguiente);
+
+    }
+    else
+    {
+        printf("\n===================\n");
+        printf("LA LISTA ESTA VACIA\n");
+        printf("===================\n");
+        exit (0);
+    }
 }
 
 
+
+int confirmaStock (nodoConsola* lista, char marca[], char modelo[], int stock)
+{
+    int flag = 0;
+    nodoConsola* aux = lista;
+
+    if(lista)
+    {
+        while(aux!= NULL && flag ==0)
+        {
+            if(strcmp(aux->dato.marca,marca)==0 && strcmp(aux->dato.modelo,modelo)==0)
+            {
+                if(aux->dato.stock>=stock)
+                {
+                    flag = 1;
+                }
+
+            }
+            aux=aux->siguiente;
+
+        }
+    }
+    else
+    {
+        printf("\n===================\n");
+        printf("LA LISTA ESTA VACIA\n");
+        printf("===================\n");
+        exit (0);
+    }
+
+    return flag;
+}
